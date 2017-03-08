@@ -1,0 +1,14 @@
+version: '3'
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:5.7
+    ports:
+      - "33060:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=test123
+  server:
+    container_name: server
+    build: ./server
+    depends_on:
+      - mysql

@@ -141,7 +141,8 @@ RUN sed -i -e 'N;s/#\n    AllowOverride None/#\n    AllowOverride All/g' \
         -e "s/ServerAdmin root@localhost/ServerAdmin admin@${HOSTNAME}/g" \
         /etc/httpd/conf/httpd.conf
 
-RUN chown -R apache:apache /var/log/httpd
+RUN chown -R apache:apache /var/log/httpd \
+    && chmod 0777 /var/log/httpd
 
 EXPOSE 80
 

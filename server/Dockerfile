@@ -165,9 +165,24 @@ RUN easy_install \
 COPY ./supervisord/httpd.conf /etc/supervisor.d/
 
 # -----------------------------------------------------------------------------
-# Running Apache2 in the foreground
+# Install PHP
 # -----------------------------------------------------------------------------
-#CMD /usr/sbin/httpd -D FOREGROUND
+RUN rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm \
+    && yum --enablerepo=remi install -y php56 \
+        php56-php-mysqlnd \
+        php56-php-opcache \
+        php56-php-mbstring \
+        php56-php-xml
+
+# -----------------------------------------------------------------------------
+# Configure PHP
+# -----------------------------------------------------------------------------
+RUN sed -i -e "s/;date.timezone =/date.timezone = ${TIMEZONE}/g" \
+        -e 's/short_open_tag = Off/short_open_tag = On/g' \
+        -e 's/expose_php = On/expose_php = Off/g' \
+        -e 's/mail.add_x_header = On/mail.add_x_header = Off/g' \
+        -e 's/session.use_strict_mode = 0/session.use_strict_mode = 1/g' \
+        /etc/php.ini
 
 # -----------------------------------------------------------------------------
 # Running SupervisorD

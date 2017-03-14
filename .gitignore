@@ -1,2 +1,4 @@
 .idea
 .env
+mysql/data/*
+!mysql/data/.dockerignore

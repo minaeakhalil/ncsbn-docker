@@ -168,11 +168,14 @@ COPY ./supervisord/httpd.conf /etc/supervisor.d/
 # Install PHP
 # -----------------------------------------------------------------------------
 RUN rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm \
-    && yum --enablerepo=remi install -y php56 \
-        php56-php-mysqlnd \
-        php56-php-opcache \
-        php56-php-mbstring \
-        php56-php-xml
+    && yum -y install yum-utils \
+    && yum-config-manager --enable remi remi-php56 \
+    && yum remove -y yum-utils \
+    && yum --enablerepo=remi install -y php \
+        php-mysqlnd \
+        php-opcache \
+        php-mbstring \
+        php-xml
 
 # -----------------------------------------------------------------------------
 # Configure PHP

@@ -188,11 +188,27 @@ RUN sed -i -e "s/;date.timezone =/date.timezone = ${TIMEZONE}/g" \
         /etc/php.ini
 
 # -----------------------------------------------------------------------------
-# Setting up the code dir
+# Install Composer
 # -----------------------------------------------------------------------------
-ADD ./code /var/www/html
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+    && php -r "if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
+    && php composer-setup.php \
+    && php -r "unlink('composer-setup.php');" \
+    && mv composer.phar /usr/local/bin/composer
 
 # -----------------------------------------------------------------------------
-# Running SupervisorD
+# Copy the content of Tao to the DocRoot
 # -----------------------------------------------------------------------------
-CMD /usr/bin/supervisord -n -c /etc/supervisord.conf
+ADD ./code/tao /var/www/html
+
+# -----------------------------------------------------------------------------
+# Add run.sh as an ENTRYPOINT. This would do:
+#   1. Runs Composer install to get Tao components
+#   2. Install Tao 3.1 RC7
+#   3. Starts supervisord
+# -----------------------------------------------------------------------------
+ADD run.sh /run.sh
+
+RUN chmod +x /run.sh
+
+ENTRYPOINT ["/run.sh"]

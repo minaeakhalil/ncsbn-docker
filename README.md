@@ -2,11 +2,21 @@
 Please refer to this [confluence page](https://breaktech.atlassian.net/wiki/display/NCSBN/TAO+Docker+Set+Special+Project)
 for more details about this project.
 
+## Table of Contents
+- [Pre-requisites](#pre-requisites)
+- [Installation](#installation)
+- [Setting your Environment File](#setting-your-environment-file)
+
 ## Pre-requisites
 - Get copy of TAO from [here as ZIP](http://releases.taotesting.com/TAO_3.1.0-RC7_build.zip) or
 [clone it from Github and checkout tag "v3.1-rc07"](https://github.com/oat-sa/package-tao)
 - Docker should be installed either Natively (not recommended for Windows machines) or through VM. Feel free to use the
 [VM from this project](https://github.com/minaeakhalil/docker).
+```bash
+$ docker --version
+
+Docker version 17.03.0-ce, build 60ccb22
+```
 - Docker compose is installed as well. To verify the version
 ```bash
 $ docker-compose --version

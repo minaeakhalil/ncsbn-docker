@@ -12,6 +12,6 @@ for more details about this project.
 1. Clone this repo
 2. Get your copy of TAO
 3. `cp .env.default .env`
-4. Edit the newly created `.env` appropriately. Please go [here for more info](setting-your-environment-file)
+4. Edit the newly created `.env` appropriately. Please go [here for more info](Setting-your-Environment-File)
 
-## Setting your Environment file
+## Setting your Environment File

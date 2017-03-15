@@ -31,7 +31,15 @@ docker-compose version 1.11.2, build dfed245
 4. Edit the newly created `.env` appropriately. Please go [here for more info](#setting-your-environment-file)
 5. Build your docker containers run `docker-compose build`
 6. Run your docker containers run `docker-compose up -d`
-7. Verify that you have 2 containers running `docker-compose ps`
+7. Verify that you have 2 containers running
+```bash
+$ docker-compose ps
+
+ Name              Command             State            Ports          
+----------------------------------------------------------------------
+mysql    docker-entrypoint.sh mysqld   Up      0.0.0.0:33306->3306/tcp 
+server   /run.sh                       Up      0.0.0.0:8080->80/tcp   
+```
 
 ## Setting your Environment File
 | Parameter | Description | Sample |

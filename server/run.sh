@@ -18,5 +18,4 @@ composer install \
         --user_pass admin \
         -e taoCe \
     && php /var/www/html/tao/scripts/taoUpdate.php \
-    && yum
     && /usr/bin/supervisord -n -c /etc/supervisord.conf

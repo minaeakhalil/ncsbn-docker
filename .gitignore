@@ -2,3 +2,5 @@
 .env
 mysql/data/*
 !mysql/data/.dockerignore
+server/code/*
+!server/code/.gitignore

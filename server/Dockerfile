@@ -197,6 +197,11 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && mv composer.phar /usr/local/bin/composer
 
 # -----------------------------------------------------------------------------
+# Install GIT so composer runs
+# -----------------------------------------------------------------------------
+RUN yum -y install git
+
+# -----------------------------------------------------------------------------
 # Copy the content of Tao to the DocRoot
 # -----------------------------------------------------------------------------
 ADD ./code/tao /var/www/html

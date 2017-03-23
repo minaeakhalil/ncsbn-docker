@@ -76,7 +76,9 @@ RUN yum -y install ntp \
 # -----------------------------------------------------------------------------
 # Install Apache
 # -----------------------------------------------------------------------------
-RUN yum -y install httpd
+RUN yum -y install httpd \
+    mod_ssl \
+    openssl
 
 # -----------------------------------------------------------------------------
 # Disable Unused Apache Modules
@@ -130,6 +132,8 @@ RUN sed -i -e 's/LoadModule auth_basic_module/#LoadModule auth_basic_module/g' \
 #   3. Configure default servername
 #   4. Hide Apache signature for security reasons
 #   5. Setup publicly available Administrator's email address
+#   6. Enable Virtual Host required for SSL
+#   7. Enable SSL Virtual Host to listen on port 443
 # -----------------------------------------------------------------------------
 ARG HOSTNAME
 
@@ -139,12 +143,29 @@ RUN sed -i -e 'N;s/#\n    AllowOverride None/#\n    AllowOverride All/g' \
         -e 's/ServerTokens OS/ServerTokens Prod/g' \
         -e 's/ServerSignature On/ServerSignature Off/g' \
         -e "s/ServerAdmin root@localhost/ServerAdmin admin@${HOSTNAME}/g" \
+        -e "s/#NameVirtualHost/NameVirtualHost/" \
         /etc/httpd/conf/httpd.conf
+    && sed -i -e "s/Listen 443/Listen 443\nNameVirtualHost *:443/" /etc/httpd/conf.d/ssl.conf
 
 RUN chown -R apache:apache /var/log/httpd \
     && chmod 0777 /var/log/httpd
 
 EXPOSE 80
+
+# -----------------------------------------------------------------------------
+# Install and Configure SSL Certificate
+# -----------------------------------------------------------------------------
+RUN openssl genrsa -out defaultSSL.key 1024 \
+    && openssl req -new -key defaultSSL.key -out defaultSSL.csr -config openssl.cnf -batch \
+    && openssl x509 -req -days 3650 -in defaultSSL.csr -signkey defaultSSL.key -out defaultSSL.crt \
+    && cp defaultSSL.crt /etc/pki/tls/certs \
+    && cp defaultSSL.key /etc/pki/tls/private \
+    && rm -f openssl.cnf defaultSSL.crt defaultSSL.key defaultSSL.csr \
+    && sed -i -e 's|SSLCertificateFile /etc/pki/tls/certs/localhost.crt|SSLCertificateFile /etc/pki/tls/certs/defaultSSL.crt|g' \
+           -e 's|SSLCertificateKeyFile /etc/pki/tls/private/localhost.key|SSLCertificateKeyFile /etc/pki/tls/private/defaultSSL.key|g' \
+           /etc/httpd/conf.d/ssl.conf
+
+EXPOSE 443
 
 # -----------------------------------------------------------------------------
 # Install SupervisorD

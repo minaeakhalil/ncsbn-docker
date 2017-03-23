@@ -26,7 +26,7 @@ docker-compose version 1.11.2, build dfed245
 
 ## Installation
 1. Clone this repo
-2. Get your copy of TAO
+2. Get your copy of TAO and put under `/path/to/this/repo/server/code/tao`
 3. `cp .env.default .env`
 4. Edit the newly created `.env` appropriately. Please go [here for more info](#setting-your-environment-file)
 5. Build your docker containers run `docker-compose build`

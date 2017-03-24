@@ -13,7 +13,7 @@ composer install \
         --db_user root \
         --db_pass test123 \
         --module_namespace http://sample/first.rdf \
-        --module_url https://tao:8080 \
+        --module_url https://tao:4443 \
         --user_login admin \
         --user_pass admin \
         -e taoCe \

@@ -168,12 +168,12 @@ RUN openssl genrsa -out defaultSSL.key 1024 \
 
 EXPOSE 80
 
-## -----------------------------------------------------------------------------
-## SSL Localhost Configuration
-## -----------------------------------------------------------------------------
-#RUN sed -i -e 's|SSLCertificateFile /etc/pki/tls/certs/localhost.crt|SSLCertificateFile /etc/pki/tls/certs/defaultSSL.crt|g' \
-#           -e 's|SSLCertificateKeyFile /etc/pki/tls/private/localhost.key|SSLCertificateKeyFile /etc/pki/tls/private/defaultSSL.key|g' \
-#           /etc/httpd/conf.d/ssl.conf
+# -----------------------------------------------------------------------------
+# SSL Localhost Configuration
+# -----------------------------------------------------------------------------
+RUN sed -i -e 's|SSLCertificateFile /etc/pki/tls/certs/localhost.crt|SSLCertificateFile /etc/pki/tls/certs/defaultSSL.crt|g' \
+           -e 's|SSLCertificateKeyFile /etc/pki/tls/private/localhost.key|SSLCertificateKeyFile /etc/pki/tls/private/defaultSSL.key|g' \
+           /etc/httpd/conf.d/ssl.conf
 
 EXPOSE 443
 

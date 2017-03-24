@@ -20,25 +20,9 @@ cat > /etc/httpd/conf.d/localhost.conf <<EOF
 </VirtualHost>
 EOF
 
-cp /etc/httpd/conf.d/ssl.conf /etc/httpd/conf.d/ssl.conf.bk
+sed -i -e "s|</VirtualHost>||" /etc/httpd/conf.d/ssl.conf
 
-cat > /etc/httpd/conf.d/ssl.conf.tmp <<EOF
-<VirtualHost *:443>
-    ServerName localhost:443
-    ServerAlias localhost
-    ServerAdmin admin@breaktech.com
-    # SSL directives
-    SSLEngine on
-    SSLCertificateFile      "/etc/pki/tls/certs/defaultSSL.crt"
-    SSLCertificateKeyFile   "/etc/pki/tls/private/defaultSSL.key"
-    SSLCACertificatePath    "/etc/pki/tls/certs"
-    # Uncomment the following line to force Apache to pass the Authorization
-    # header to PHP: required for "basic_auth" under PHP-FPM and FastCGI
-    #
-    # SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=\$1
-    # For Apache 2.4.9 or higher
-    # Using SetHandler avoids issues with using ProxyPassMatch in combination
-    # with mod_rewrite or mod_autoindex
+cat >> /etc/httpd/conf.d/ssl.conf <<EOF
     DocumentRoot /var/www/html
     <Directory /var/www/html>
         # Disable directory index
@@ -49,6 +33,6 @@ cat > /etc/httpd/conf.d/ssl.conf.tmp <<EOF
         Allow from all
     </Directory>
     ErrorLog "/var/log/httpd/localhost_ssl-error_log"
-    CustomLog "/var/log/httpd/localhost_ssl-access_log" common
+    # CustomLog "/var/log/httpd/localhost_ssl-access_log" common
 </VirtualHost>
 EOF

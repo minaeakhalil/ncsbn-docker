@@ -1,5 +1,6 @@
 .idea
 .env
+backup/
 mysql/data/*
 !mysql/data/.dockerignore
 server/code/*

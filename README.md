@@ -49,7 +49,15 @@ server   /run.sh                       Up      0.0.0.0:8080->80/tcp
 | MYSQL_HOST_DATA_DIR | local dir (on host machine) to store the data | /path/to/your/local-repo/mysql/data |
 | MYSQL_GUEST_DATA_DIR | a mapped dir on the guest machine to store the data | /var/lib/mysql |
 | HTTP_PORT | Mapped port for HTTP on host machine | 8080 |
+| HTTPS_PORT | Mapped port for HTTPS on host machine | 4443 |
 | HOSTNAME | Application desired hostname | tao-docker |
 | TIMEZONE | Guest machine timezone | UTC |
 | TAO_HOST_DIR | Location of the TAO code on host machine | /path/to/your/local-repo/server/code/tao |
 | TAO_GUEST_DIR | Mapped location of TAO code on the guest machine | /var/www/html |
+| SSL_ORGANIZATION_NAME | Organization Name | Breakthrough Technologies LLC |
+| SSL_ORGANIZATIONAL_UNIT_NAME | Department | Developement |
+| SSL_EMAIL_ADDRESS | An email address | first.last@breaktech.com |
+| SSL_LOCALITY_NAME | City | Evanston |
+| SSL_STATE | State | IL |
+| SSL_COUNTRY_NAME | Country | US |
+| SSL_COMMON_NAME | Common Name | *@breaktech.com |

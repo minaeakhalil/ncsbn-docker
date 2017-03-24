@@ -34,19 +34,6 @@ RUN rpm --rebuilddb \
         openssh-clients \
         python-setuptools \
         yum-plugin-versionlock \
-#    && rpm -e --nodeps \
-#        dracut \
-#        dracut-kernel \
-#        grubby \
-#        hwdata \
-#        iptables \
-#        kbd \
-#        kbd-misc \
-#        kernel \
-#        kernel-firmware \
-#        plymouth \
-#        policycoreutils \
-#        sysvinit-tools \
     && yum clean all \
     && find /usr/share \
         -type f \
@@ -68,22 +55,38 @@ RUN ln -sf \
     && echo "NETWORKING=yes" > /etc/sysconfig/network
 
 # -----------------------------------------------------------------------------
-# Necessary packages - Can be combined with the previous step
+# Necessary packages
+#   1. ntp
+#   2. Aapche
+#   3. Apache SSL Module
+#   4. OpenSSL
 # -----------------------------------------------------------------------------
 RUN yum -y install ntp \
-    && chkconfig ntpd on
-
-# -----------------------------------------------------------------------------
-# Install Apache
-# -----------------------------------------------------------------------------
-RUN yum -y install httpd \
+    httpd \
     mod_ssl \
-    openssl
+    openssl \
+    && service httpd stop \
+    && service ntpd start
 
 # -----------------------------------------------------------------------------
-# Disable Unused Apache Modules
+# Apache Configuration
+#   1. Disable unused modules
+#   2. Disable Server Tokens
+#   3. Disable Server Signature
+#   4. Set server admin email
+#   5. Enable Virtual Host on port 80
 # -----------------------------------------------------------------------------
-RUN sed -i -e 's/LoadModule auth_basic_module/#LoadModule auth_basic_module/g' \
+ARG HOSTNAME
+
+ADD ./conf/apache/apache.sh /apache.sh
+
+RUN chmod +x /apache.sh \
+    && ./apache.sh \
+    && sed -i -e 's/ServerTokens OS/ServerTokens Prod/g' \
+        -e 's/ServerSignature On/ServerSignature Off/g' \
+        -e "s/ServerAdmin root@localhost/ServerAdmin admin@${HOSTNAME}/g" \
+        -e "s/#NameVirtualHost/NameVirtualHost/" \
+        -e 's/LoadModule auth_basic_module/#LoadModule auth_basic_module/g' \
         -e 's/LoadModule auth_digest_module/#LoadModule auth_digest_module/g' \
         -e 's/LoadModule authn_file_module/#LoadModule authn_file_module/g' \
         -e 's/LoadModule authn_alias_module/#LoadModule authn_alias_module/g' \
@@ -126,6 +129,28 @@ RUN sed -i -e 's/LoadModule auth_basic_module/#LoadModule auth_basic_module/g' \
         /etc/httpd/conf/httpd.conf
 
 # -----------------------------------------------------------------------------
+# Install and Configure SSL Certificate
+# -----------------------------------------------------------------------------
+ARG SSL_ORGANIZATION_NAME
+ARG SSL_ORGANIZATIONAL_UNIT_NAME
+ARG SSL_EMAIL_ADDRESS
+ARG SSL_LOCALITY_NAME
+ARG SSL_STATE
+ARG SSL_COUNTRY_NAME
+ARG SSL_COMMON_NAME
+
+ADD ./conf/SSL/openssl.sh /openssl.sh
+
+RUN openssl genrsa -out defaultSSL.key 1024 \
+    && chmod +x /openssl.sh \
+    && ./openssl.sh \
+    && openssl req -new -key defaultSSL.key -out defaultSSL.csr -config /tmp/openssl.cnf -batch \
+    && openssl x509 -req -days 3650 -in defaultSSL.csr -signkey defaultSSL.key -out defaultSSL.crt \
+    && cp defaultSSL.crt /etc/pki/tls/certs \
+    && cp defaultSSL.key /etc/pki/tls/private \
+    && rm -f openssl.cnf defaultSSL.crt defaultSSL.key defaultSSL.csr
+
+# -----------------------------------------------------------------------------
 # Further Apache Configuration
 #   1. Enable .htaccess in the default DocRoot
 #   2. Enable GZIP compression on Apache
@@ -135,35 +160,20 @@ RUN sed -i -e 's/LoadModule auth_basic_module/#LoadModule auth_basic_module/g' \
 #   6. Enable Virtual Host required for SSL
 #   7. Enable SSL Virtual Host to listen on port 443
 # -----------------------------------------------------------------------------
-ARG HOSTNAME
-
-RUN sed -i -e 'N;s/#\n    AllowOverride None/#\n    AllowOverride All/g' \
-        -e '$a\\n#\n# Enable GZIP compression\n#\n<IfModule mod_deflate.c>\n    SetOutputFilter DEFLATE\n    AddOutputFilterByType DEFLATE application/atom+xml application/font-woff application/javascript application/json application/rss+xml application/vnd.ms-fontobject application/x-font application/x-font-opentype application/x-font-otf application/x-font-truetype application/x-font-ttf application/x-font-woff application/x-httpd-php application/x-javascript application/xhtml+xml application/xml font/opentype font/otf font/ttf image/svg+xml image/x-icon text/css text/csv text/html text/javascript text/plain text/xml\n    BrowserMatch ^Mozilla/4 gzip-only-text/html\n    BrowserMatch ^Mozilla/4\.0[678] no-gzip\n    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html\n    BrowserMatch \bMSI[E] !no-gzip !gzip-only-text/html\n    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip\n    Header append Vary User-Agent env=!dont-vary\n</IfModule>' \
-        -e '$a\\nServerName localhost:80' \
-        -e 's/ServerTokens OS/ServerTokens Prod/g' \
-        -e 's/ServerSignature On/ServerSignature Off/g' \
-        -e "s/ServerAdmin root@localhost/ServerAdmin admin@${HOSTNAME}/g" \
-        -e "s/#NameVirtualHost/NameVirtualHost/" \
-        /etc/httpd/conf/httpd.conf
-    && sed -i -e "s/Listen 443/Listen 443\nNameVirtualHost *:443/" /etc/httpd/conf.d/ssl.conf
-
-RUN chown -R apache:apache /var/log/httpd \
-    && chmod 0777 /var/log/httpd
+#RUN sed -i -e 'N;s/#\n    AllowOverride None/#\n    AllowOverride All/g' \
+#        -e '$a\\n#\n# Enable GZIP compression\n#\n<IfModule mod_deflate.c>\n    SetOutputFilter DEFLATE\n    AddOutputFilterByType DEFLATE application/atom+xml application/font-woff application/javascript application/json application/rss+xml application/vnd.ms-fontobject application/x-font application/x-font-opentype application/x-font-otf application/x-font-truetype application/x-font-ttf application/x-font-woff application/x-httpd-php application/x-javascript application/xhtml+xml application/xml font/opentype font/otf font/ttf image/svg+xml image/x-icon text/css text/csv text/html text/javascript text/plain text/xml\n    BrowserMatch ^Mozilla/4 gzip-only-text/html\n    BrowserMatch ^Mozilla/4\.0[678] no-gzip\n    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html\n    BrowserMatch \bMSI[E] !no-gzip !gzip-only-text/html\n    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip\n    Header append Vary User-Agent env=!dont-vary\n</IfModule>' \
+#        -e '$a\\nServerName localhost:80' \
+#        /etc/httpd/conf/httpd.conf \
+#    && sed -i -e "s/Listen 443/Listen 443\nNameVirtualHost *:443/" /etc/httpd/conf.d/ssl.conf
 
 EXPOSE 80
 
-# -----------------------------------------------------------------------------
-# Install and Configure SSL Certificate
-# -----------------------------------------------------------------------------
-RUN openssl genrsa -out defaultSSL.key 1024 \
-    && openssl req -new -key defaultSSL.key -out defaultSSL.csr -config openssl.cnf -batch \
-    && openssl x509 -req -days 3650 -in defaultSSL.csr -signkey defaultSSL.key -out defaultSSL.crt \
-    && cp defaultSSL.crt /etc/pki/tls/certs \
-    && cp defaultSSL.key /etc/pki/tls/private \
-    && rm -f openssl.cnf defaultSSL.crt defaultSSL.key defaultSSL.csr \
-    && sed -i -e 's|SSLCertificateFile /etc/pki/tls/certs/localhost.crt|SSLCertificateFile /etc/pki/tls/certs/defaultSSL.crt|g' \
-           -e 's|SSLCertificateKeyFile /etc/pki/tls/private/localhost.key|SSLCertificateKeyFile /etc/pki/tls/private/defaultSSL.key|g' \
-           /etc/httpd/conf.d/ssl.conf
+## -----------------------------------------------------------------------------
+## SSL Localhost Configuration
+## -----------------------------------------------------------------------------
+#RUN sed -i -e 's|SSLCertificateFile /etc/pki/tls/certs/localhost.crt|SSLCertificateFile /etc/pki/tls/certs/defaultSSL.crt|g' \
+#           -e 's|SSLCertificateKeyFile /etc/pki/tls/private/localhost.key|SSLCertificateKeyFile /etc/pki/tls/private/defaultSSL.key|g' \
+#           /etc/httpd/conf.d/ssl.conf
 
 EXPOSE 443
 
@@ -183,7 +193,7 @@ RUN easy_install \
 # -----------------------------------------------------------------------------
 # Configure Supervisord to run Apache
 # -----------------------------------------------------------------------------
-COPY ./supervisord/httpd.conf /etc/supervisor.d/
+COPY ./conf/supervisord/httpd.conf /etc/supervisor.d/
 
 # -----------------------------------------------------------------------------
 # Install PHP

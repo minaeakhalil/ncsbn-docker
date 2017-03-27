@@ -60,4 +60,6 @@ server   /run.sh                       Up      0.0.0.0:8080->80/tcp
 | SSL_LOCALITY_NAME | City | Evanston |
 | SSL_STATE | State | IL |
 | SSL_COUNTRY_NAME | Country | US |
-| SSL_COMMON_NAME | Common Name | *@breaktech.com |
+| SSL_COMMON_NAME | Common Name | *@breaktech.com* |
+| ROOT_PASSWORD | SSH Root Password | |
+

@@ -80,8 +80,9 @@ ARG HOSTNAME
 
 ADD ./conf/apache/apache.sh /apache.sh
 
-RUN chmod +x /apache.sh \
-    && ./apache.sh \
+#RUN chmod +x /apache.sh \
+#    &&
+RUN ./apache.sh \
     && sed -i -e 's/ServerTokens OS/ServerTokens Prod/g' \
         -e 's/ServerSignature On/ServerSignature Off/g' \
         -e "s/ServerAdmin root@localhost/ServerAdmin admin@${HOSTNAME}/g" \
@@ -141,9 +142,9 @@ ARG SSL_COMMON_NAME
 
 ADD ./conf/SSL/openssl.sh /openssl.sh
 
-RUN openssl genrsa -out defaultSSL.key 1024 \
-    && chmod +x /openssl.sh \
-    && ./openssl.sh \
+RUN openssl genrsa -out defaultSSL.key 1024 
+RUN chmod +x /openssl.sh 
+RUN ./openssl.sh \
     && openssl req -new -key defaultSSL.key -out defaultSSL.csr -config /tmp/openssl.cnf -batch \
     && openssl x509 -req -days 3650 -in defaultSSL.csr -signkey defaultSSL.key -out defaultSSL.crt \
     && cp defaultSSL.crt /etc/pki/tls/certs \
@@ -196,17 +197,44 @@ RUN easy_install \
 COPY ./conf/supervisord/httpd.conf /etc/supervisor.d/
 
 # -----------------------------------------------------------------------------
+# Configure SSH 
+# -----------------------------------------------------------------------------
+ADD ./conf/ssh/set_root_pw.sh \
+    /set_root_pw.sh
+ADD ./conf/ssh/id_docker_root_rsa.pub \
+    /root/.ssh/authorized_keys
+RUN chmod 600 /root/.ssh/authorized_keys
+
+RUN yum -y install pwgen
+RUN rm -f /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_rsa_key
+RUN ssh-keygen -q -N "" -t dsa -f /etc/ssh/ssh_host_dsa_key
+RUN ssh-keygen -q -N "" -t rsa -f /etc/ssh/ssh_host_rsa_key
+RUN sed -i "s/#UsePrivilegeSeparation.*/UsePrivilegeSeparation no/g" /etc/ssh/sshd_config
+RUN sed -i "s/UsePAM.*/UsePAM yes/g" /etc/ssh/sshd_config
+
+# -----------------------------------------------------------------------------
 # Install PHP
 # -----------------------------------------------------------------------------
-RUN rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm \
-    && yum -y install yum-utils \
-    && yum-config-manager --enable remi remi-php56 \
-    && yum remove -y yum-utils \
-    && yum --enablerepo=remi install -y php \
-        php-mysqlnd \
-        php-opcache \
-        php-mbstring \
-        php-xml
+#RUN rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm 
+RUN  yum -y install yum-utils 
+RUN  yum-config-manager --enable remi remi-php56 
+RUN  yum remove -y yum-utils 
+#RUN  yum --enablerepo=remi install -y php 
+RUN  yum install -y php56u
+RUN  yum install -y  php56u-mysqlnd
+RUN  yum install -y  php56u-opcache 
+RUN  yum install -y  php56u-mbstring 
+RUN  yum install -y  php56u-xml
+
+#RUN rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm \
+#    && yum -y install yum-utils \
+#    && yum-config-manager --enable remi remi-php56 \
+#    && yum remove -y yum-utils \
+#    && yum --enablerepo=remi install -y php \
+#        php-mysqlnd \
+#        php-opcache \
+#        php-mbstring \
+#        php-xml
 
 # -----------------------------------------------------------------------------
 # Configure PHP
@@ -227,8 +255,9 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "unlink('composer-setup.php');" \
     && mv composer.phar /usr/local/bin/composer
 
-# -----------------------------------------------------------------------------
-# Install GIT so composer runs
+                                                                               
+# -----------------------------------------------------------------------------    
+# Install GIT so composer runs                                                 
 # -----------------------------------------------------------------------------
 RUN yum -y install git
 

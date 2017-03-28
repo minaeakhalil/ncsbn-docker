@@ -80,8 +80,7 @@ ARG HOSTNAME
 
 ADD ./conf/apache/apache.sh /apache.sh
 
-RUN chmod +x /apache.sh \
-    && ./apache.sh \
+RUN /bin/bash /apache.sh \
     && sed -i -e 's/ServerTokens OS/ServerTokens Prod/g' \
         -e 's/ServerSignature On/ServerSignature Off/g' \
         -e "s/ServerAdmin root@localhost/ServerAdmin admin@${HOSTNAME}/g" \
@@ -141,9 +140,8 @@ ARG SSL_COMMON_NAME
 
 ADD ./conf/SSL/openssl.sh /openssl.sh
 
-RUN openssl genrsa -out defaultSSL.key 1024 \
-    && chmod +x /openssl.sh \
-    && ./openssl.sh \
+RUN /bin/bash /openssl.sh \
+    && openssl genrsa -out defaultSSL.key 1024 \
     && openssl req -new -key defaultSSL.key -out defaultSSL.csr -config /tmp/openssl.cnf -batch \
     && openssl x509 -req -days 3650 -in defaultSSL.csr -signkey defaultSSL.key -out defaultSSL.crt \
     && cp defaultSSL.crt /etc/pki/tls/certs \

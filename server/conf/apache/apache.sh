@@ -6,8 +6,8 @@ cat > /etc/httpd/conf.d/localhost.conf <<EOF
     ServerAlias localhost
     ServerAdmin admin@breaktech.com
 
-    DocumentRoot /var/www/html
-    <Directory /var/www/html>
+    DocumentRoot ${DOCROOT}
+    <Directory ${DOCROOT}>
         # Disable directory index
         Options Indexes FollowSymLinks
         # enable the .htaccess rewrites
@@ -23,8 +23,8 @@ EOF
 sed -i -e "s|</VirtualHost>||" /etc/httpd/conf.d/ssl.conf
 
 cat >> /etc/httpd/conf.d/ssl.conf <<EOF
-    DocumentRoot /var/www/html
-    <Directory /var/www/html>
+    DocumentRoot ${DOCROOT}
+    <Directory ${DOCROOT}>
         # Disable directory index
         Options Indexes FollowSymLinks
         # enable the .htaccess rewrites

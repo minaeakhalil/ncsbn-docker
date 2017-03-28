@@ -77,11 +77,11 @@ RUN yum -y install ntp \
 #   5. Enable Virtual Host on port 80
 # -----------------------------------------------------------------------------
 ARG HOSTNAME
+ARG DOCROOT
 
 ADD ./conf/apache/apache.sh /apache.sh
 
-RUN chmod +x /apache.sh \
-    && ./apache.sh \
+RUN /bin/bash /apache.sh \
     && sed -i -e 's/ServerTokens OS/ServerTokens Prod/g' \
         -e 's/ServerSignature On/ServerSignature Off/g' \
         -e "s/ServerAdmin root@localhost/ServerAdmin admin@${HOSTNAME}/g" \
@@ -141,9 +141,8 @@ ARG SSL_COMMON_NAME
 
 ADD ./conf/SSL/openssl.sh /openssl.sh
 
-RUN openssl genrsa -out defaultSSL.key 1024 \
-    && chmod +x /openssl.sh \
-    && ./openssl.sh \
+RUN /bin/bash /openssl.sh \
+    && openssl genrsa -out defaultSSL.key 1024 \
     && openssl req -new -key defaultSSL.key -out defaultSSL.csr -config /tmp/openssl.cnf -batch \
     && openssl x509 -req -days 3650 -in defaultSSL.csr -signkey defaultSSL.key -out defaultSSL.crt \
     && cp defaultSSL.crt /etc/pki/tls/certs \
@@ -243,8 +242,15 @@ ADD ./code/tao /var/www/html
 #   2. Install Tao 3.1 RC7
 #   3. Starts supervisord
 # -----------------------------------------------------------------------------
-ADD run.sh /run.sh
+ARG DOCROOT
+ARG MYSQL_HOST
+ARG TAO_MYSQL_USER
+ARG TAO_MYSQL_PASSWORD
+ARG TAO_MYSQL_DB
+ARG TAO_USER
+ARG TAO_PASSWORD
+ARG TAO_FULL_URL
 
-RUN chmod +x /run.sh
+ADD run.sh /run.sh
 
 ENTRYPOINT ["/run.sh"]

@@ -16,6 +16,7 @@ services:
       context: ./server
       args:
         HOSTNAME: $HOSTNAME
+        DOCROOT: $DOCROOT
         SSL_ORGANIZATION_NAME: $SSL_ORGANIZATION_NAME
         SSL_ORGANIZATIONAL_UNIT_NAME: $SSL_ORGANIZATIONAL_UNIT_NAME
         SSL_EMAIL_ADDRESS: $SSL_EMAIL_ADDRESS
@@ -28,5 +29,14 @@ services:
       - "${HTTPS_PORT}:443"
     depends_on:
       - mysql
+    environment:
+      - DOCROOT=${DOCROOT}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - TAO_MYSQL_USER=${TAO_MYSQL_USER}
+      - TAO_MYSQL_PASSWORD=${TAO_MYSQL_PASSWORD}
+      - TAO_MYSQL_DB=${TAO_MYSQL_DB}
+      - TAO_USER=${TAO_USER}
+      - TAO_PASSWORD=${TAO_PASSWORD}
+      - TAO_FULL_URL=${TAO_FULL_URL}
     volumes:
-      - ${TAO_HOST_DIR}:${TAO_GUEST_DIR}
+      - ${TAO_HOST_DIR}:${DOCROOT}

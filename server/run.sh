@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 
-cd /var/www/html
-
-# Install TAO dependencies using Composer
-
 # Install TAO
-composer install \
+composer install -d /var/www/html \
     && php /var/www/html/tao/scripts/taoInstall.php \
         --db_driver pdo_mysql \
         --db_host mysql \

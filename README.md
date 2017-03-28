@@ -53,7 +53,14 @@ server   /run.sh                       Up      0.0.0.0:8080->80/tcp
 | HOSTNAME | Application desired hostname | tao-docker |
 | TIMEZONE | Guest machine timezone | UTC |
 | TAO_HOST_DIR | Location of the TAO code on host machine | /path/to/your/local-repo/server/code/tao |
-| TAO_GUEST_DIR | Mapped location of TAO code on the guest machine | /var/www/html |
+| DOCROOT | Mapped location of TAO code on the guest machine | /var/www/html |
+| MYSQL_HOST | Hostname of the MySQL container | mysql |
+| TAO_MYSQL_USER | MySQL username | root |
+| TAO_MYSQL_PASSWORD | MySQL password | test123 |
+| TAO_MYSQL_DB | Database name | tao |
+| TAO_USER | Admin user | admin |
+| TAO_PASSWORD | Admin password | admin |
+| TAO_FULL_URL | Full URL | https://tao:4443 |
 | SSL_ORGANIZATION_NAME | Organization Name | Breakthrough Technologies LLC |
 | SSL_ORGANIZATIONAL_UNIT_NAME | Department | Developement |
 | SSL_EMAIL_ADDRESS | An email address | first.last@breaktech.com |

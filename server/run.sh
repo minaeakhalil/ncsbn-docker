@@ -9,7 +9,7 @@ composer install -d ${DOCROOT} \
         --db_user ${TAO_MYSQL_USER} \
         --db_pass ${TAO_MYSQL_PASSWORD} \
         --module_namespace http://sample/first.rdf \
-        --module_url https://tao:4443 \
+        --module_url ${TAO_FULL_URL} \
         --user_login ${TAO_USER} \
         --user_pass ${TAO_PASSWORD} \
         -e taoCe \

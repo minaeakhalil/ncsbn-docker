@@ -37,5 +37,6 @@ services:
       - TAO_MYSQL_DB=${TAO_MYSQL_DB}
       - TAO_USER=${TAO_USER}
       - TAO_PASSWORD=${TAO_PASSWORD}
+      - TAO_FULL_URL=${TAO_FULL_URL}
     volumes:
       - ${TAO_HOST_DIR}:${DOCROOT}

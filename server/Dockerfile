@@ -164,7 +164,6 @@ RUN openssl genrsa -out defaultSSL.key 1024 \
 #        -e '$a\\n#\n# Enable GZIP compression\n#\n<IfModule mod_deflate.c>\n    SetOutputFilter DEFLATE\n    AddOutputFilterByType DEFLATE application/atom+xml application/font-woff application/javascript application/json application/rss+xml application/vnd.ms-fontobject application/x-font application/x-font-opentype application/x-font-otf application/x-font-truetype application/x-font-ttf application/x-font-woff application/x-httpd-php application/x-javascript application/xhtml+xml application/xml font/opentype font/otf font/ttf image/svg+xml image/x-icon text/css text/csv text/html text/javascript text/plain text/xml\n    BrowserMatch ^Mozilla/4 gzip-only-text/html\n    BrowserMatch ^Mozilla/4\.0[678] no-gzip\n    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html\n    BrowserMatch \bMSI[E] !no-gzip !gzip-only-text/html\n    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip\n    Header append Vary User-Agent env=!dont-vary\n</IfModule>' \
 #        -e '$a\\nServerName localhost:80' \
 #        /etc/httpd/conf/httpd.conf \
-#    && sed -i -e "s/Listen 443/Listen 443\nNameVirtualHost *:443/" /etc/httpd/conf.d/ssl.conf
 
 EXPOSE 80
 
@@ -211,6 +210,8 @@ RUN rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm \
 # -----------------------------------------------------------------------------
 # Configure PHP
 # -----------------------------------------------------------------------------
+ARG TIMEZONE
+
 RUN sed -i -e "s/;date.timezone =/date.timezone = ${TIMEZONE}/g" \
         -e 's/short_open_tag = Off/short_open_tag = On/g' \
         -e 's/expose_php = On/expose_php = Off/g' \
@@ -231,6 +232,20 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 # Install GIT so composer runs
 # -----------------------------------------------------------------------------
 RUN yum -y install git
+
+# -----------------------------------------------------------------------------
+# Install and Configure SSH
+#   SSH comes pre-installed with the current Centos 6.8 image.
+# -----------------------------------------------------------------------------
+RUN echo 'root:screencast' | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
 
 # -----------------------------------------------------------------------------
 # Copy the content of Tao to the DocRoot

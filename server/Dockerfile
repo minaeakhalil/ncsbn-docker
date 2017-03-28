@@ -77,6 +77,7 @@ RUN yum -y install ntp \
 #   5. Enable Virtual Host on port 80
 # -----------------------------------------------------------------------------
 ARG HOSTNAME
+ARG DOCROOT
 
 ADD ./conf/apache/apache.sh /apache.sh
 
@@ -241,6 +242,14 @@ ADD ./code/tao /var/www/html
 #   2. Install Tao 3.1 RC7
 #   3. Starts supervisord
 # -----------------------------------------------------------------------------
+ARG DOCROOT
+ARG MYSQL_HOST
+ARG TAO_MYSQL_USER
+ARG TAO_MYSQL_PASSWORD
+ARG TAO_MYSQL_DB
+ARG TAO_USER
+ARG TAO_PASSWORD
+
 ADD run.sh /run.sh
 
 ENTRYPOINT ["/run.sh"]

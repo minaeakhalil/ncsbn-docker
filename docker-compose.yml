@@ -38,5 +38,6 @@ services:
       - TAO_USER=${TAO_USER}
       - TAO_PASSWORD=${TAO_PASSWORD}
       - TAO_FULL_URL=${TAO_FULL_URL}
+      - TAO_MODULE_URL=${TAO_MODULE_URL}
     volumes:
       - ${TAO_HOST_DIR}:${DOCROOT}

@@ -227,12 +227,9 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && mv composer.phar /usr/local/bin/composer
 
 # -----------------------------------------------------------------------------
-# Install GIT so composer runs
-# -----------------------------------------------------------------------------
-RUN yum -y install git
-
-# -----------------------------------------------------------------------------
 # Copy the content of Tao to the DocRoot
+#   NOTE: This step is needed in case there is a need to distribute the
+#           container in a packaged format
 # -----------------------------------------------------------------------------
 ADD ./code/tao /var/www/html
 
@@ -244,12 +241,14 @@ ADD ./code/tao /var/www/html
 # -----------------------------------------------------------------------------
 ARG DOCROOT
 ARG MYSQL_HOST
+ARG TAO_INSTALL
 ARG TAO_MYSQL_USER
 ARG TAO_MYSQL_PASSWORD
 ARG TAO_MYSQL_DB
 ARG TAO_USER
 ARG TAO_PASSWORD
 ARG TAO_FULL_URL
+ARG TAO_MODULE_URL
 
 ADD run.sh /run.sh
 

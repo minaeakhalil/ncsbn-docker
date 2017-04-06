@@ -8,6 +8,12 @@ services:
       - "${MYSQL_PORT}:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      # MYSQL_DATABASE creates a database (optional)
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      # MUST use MYSQL_USER & MYSQL_PASSWORD together; together
+      # they grant user permissions on MYSQL_DATABASE
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     volumes:
       - ${MYSQL_HOST_DATA_DIR}:${MYSQL_GUEST_DATA_DIR}
   server:

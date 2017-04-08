@@ -140,9 +140,30 @@ RUN sed -i -e 'N;s/#\n    AllowOverride None/#\n    AllowOverride All/g' \
         -e 's/ServerSignature On/ServerSignature Off/g' \
         -e "s/ServerAdmin root@localhost/ServerAdmin admin@${HOSTNAME}/g" \
         /etc/httpd/conf/httpd.conf
+        
 
-RUN chown -R apache:apache /var/log/httpd \
+#RUN chown -R apache:apache /var/log/httpd \
+#    && chmod 0777 /var/log/httpd
+
+# -----------------------------------------------------------------------------
+# Create admin user
+# -----------------------------------------------------------------------------
+RUN yum -y install nano
+RUN groupadd -g 1000 defcon
+RUN useradd -u 1000 -g 1000 -d /var/www/html -G apache,wheel defcon
+RUN echo "defcon:defcon" | chpasswd
+
+RUN sed -i -e 's/AllowOverride None/AllowOverride All/g' \
+        -e 's/User apache/User defcon/g' \
+        -e 's/Group apache/Group defcon/g' \
+        /etc/httpd/conf/httpd.conf
+
+RUN echo "%wheel	ALL=(ALL)	NOPASSWD: ALL" > /etc/sudoers.d/wheel
+RUN echo "%defcon	ALL=(ALL)	NOPASSWD: ALL" > /etc/sudoers.d/defcon 
+        
+RUN chown -R defcon:defcon /var/log/httpd \
     && chmod 0777 /var/log/httpd
+
 
 EXPOSE 80
 
@@ -204,7 +225,7 @@ RUN yum -y install git
 # -----------------------------------------------------------------------------
 # Copy the content of Tao to the DocRoot
 # -----------------------------------------------------------------------------
-ADD ./code/tao /var/www/html
+# ADD ./code/tao /var/www/html
 
 # -----------------------------------------------------------------------------
 # Add run.sh as an ENTRYPOINT. This would do:

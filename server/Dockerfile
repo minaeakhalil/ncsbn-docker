@@ -17,14 +17,14 @@ RUN rpm --rebuilddb \
         https://centos6.iuscommunity.org/ius-release.rpm \
         vim-minimal-7.4.629-5.el6_8.1 \
         xz-4.999.9-0.5.beta.20091007git.el6.x86_64 \
-        sudo-1.8.6p3-25.el6_8 \
-        openssh-5.3p1-118.1.el6_8 \
-        openssh-server-5.3p1-118.1.el6_8 \
-        openssh-clients-5.3p1-118.1.el6_8 \
+        sudo-1.8.6p3-27.el6 \
+        openssh-5.3p1-122.el6 \
+        openssh-server-5.3p1-122.el6 \
+        openssh-clients-5.3p1-122.el6 \
         python-setuptools-0.6.10-3.el6 \
-        yum-plugin-versionlock-1.1.30-37.el6 \
+        yum-plugin-versionlock-1.1.30-40.el6 \
         libxml2-2.7.6-21.el6_8.1 \
-        openssl-1.0.1e-48.el6_8.3 \
+        openssl-1.0.1e-57.el6 \
     && yum versionlock add \
         vim-minimal \
         xz \
@@ -144,7 +144,7 @@ ADD ./conf/SSL/openssl.sh /openssl.sh
 RUN /bin/bash /openssl.sh \
     && openssl genrsa -out defaultSSL.key 1024 \
     && openssl req -new -key defaultSSL.key -out defaultSSL.csr -config /tmp/openssl.cnf -batch \
-    && openssl x509 -req -days 3650 -in defaultSSL.csr -signkey defaultSSL.key -out defaultSSL.crt \
+    && openssl req -x509 -days 365 -in defaultSSL.csr -key defaultSSL.key -out defaultSSL.crt \
     && cp defaultSSL.crt /etc/pki/tls/certs \
     && cp defaultSSL.key /etc/pki/tls/private \
     && rm -f openssl.cnf defaultSSL.crt defaultSSL.key defaultSSL.csr

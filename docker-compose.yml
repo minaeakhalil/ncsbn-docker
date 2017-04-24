@@ -2,12 +2,17 @@ version: '3'
 services:
   mysql:
     container_name: mysql
-    build:
-      context: ./mysql
+    image: mysql:5.7
     ports:
       - "${MYSQL_PORT}:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      # MYSQL_DATABASE creates a database (optional)
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      # MUST use MYSQL_USER & MYSQL_PASSWORD together; together
+      # they grant user permissions on MYSQL_DATABASE
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     volumes:
       - ${MYSQL_HOST_DATA_DIR}:${MYSQL_GUEST_DATA_DIR}
   server:
@@ -17,6 +22,10 @@ services:
       args:
         HOSTNAME: $HOSTNAME
         TIMEZONE: $TIMEZONE
+        DOCROOT: $DOCROOT
+        ADMIN_USER: $ADMIN_USER
+        GID: $GID
+        UID: $UID
         SSL_ORGANIZATION_NAME: $SSL_ORGANIZATION_NAME
         SSL_ORGANIZATIONAL_UNIT_NAME: $SSL_ORGANIZATIONAL_UNIT_NAME
         SSL_EMAIL_ADDRESS: $SSL_EMAIL_ADDRESS
@@ -29,5 +38,14 @@ services:
       - "${HTTPS_PORT}:443"
     depends_on:
       - mysql
+    environment:
+      - DOCROOT=${DOCROOT}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - TAO_MYSQL_USER=${TAO_MYSQL_USER}
+      - TAO_MYSQL_PASSWORD=${TAO_MYSQL_PASSWORD}
+      - TAO_MYSQL_DB=${TAO_MYSQL_DB}
+      - TAO_USER=${TAO_USER}
+      - TAO_PASSWORD=${TAO_PASSWORD}
+      - TAO_FULL_URL=${TAO_FULL_URL}
     volumes:
-      - ${TAO_HOST_DIR}:${TAO_GUEST_DIR}
+      - ${TAO_HOST_DIR}:${DOCROOT}

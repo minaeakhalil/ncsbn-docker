@@ -17,14 +17,15 @@ RUN rpm --rebuilddb \
         https://centos6.iuscommunity.org/ius-release.rpm \
         vim-minimal-7.4.629-5.el6_8.1 \
         xz-4.999.9-0.5.beta.20091007git.el6.x86_64 \
-        sudo-1.8.6p3-25.el6_8 \
-        openssh-5.3p1-118.1.el6_8 \
-        openssh-server-5.3p1-118.1.el6_8 \
-        openssh-clients-5.3p1-118.1.el6_8 \
+        sudo-1.8.6p3-27.el6 \
+        openssh-5.3p1-122.el6 \
+        openssh-server-5.3p1-122.el6 \
+        openssh-clients-5.3p1-122.el6 \
         python-setuptools-0.6.10-3.el6 \
-        yum-plugin-versionlock-1.1.30-37.el6 \
+        yum-plugin-versionlock-1.1.30-40.el6 \
         libxml2-2.7.6-21.el6_8.1 \
-        openssl-1.0.1e-48.el6_8.3 \
+        openssl-1.0.1e-57.el6 \
+        nano \
     && yum versionlock add \
         vim-minimal \
         xz \
@@ -69,6 +70,18 @@ RUN yum -y install ntp \
     && service ntpd start
 
 # -----------------------------------------------------------------------------
+# Admin User
+# -----------------------------------------------------------------------------
+ARG ADMIN_USER
+ARG GID
+ARG UID
+
+RUN groupadd -g ${GID} ${ADMIN_USER} \
+    && useradd -u ${UID} -g ${GID} -G apache,wheel ${ADMIN_USER} \
+    && echo "%wheel	ALL=(ALL)	NOPASSWD: ALL" > /etc/sudoers.d/wheel \
+    && echo "%${ADMIN_USER}	ALL=(ALL)	NOPASSWD: ALL" > /etc/sudoers.d/${ADMIN_USER}
+
+# -----------------------------------------------------------------------------
 # Apache Configuration
 #   1. Disable unused modules
 #   2. Disable Server Tokens
@@ -77,11 +90,11 @@ RUN yum -y install ntp \
 #   5. Enable Virtual Host on port 80
 # -----------------------------------------------------------------------------
 ARG HOSTNAME
+ARG DOCROOT
 
 ADD ./conf/apache/apache.sh /apache.sh
 
-RUN chmod +x /apache.sh \
-    && ./apache.sh \
+RUN /bin/bash /apache.sh \
     && sed -i -e 's/ServerTokens OS/ServerTokens Prod/g' \
         -e 's/ServerSignature On/ServerSignature Off/g' \
         -e "s/ServerAdmin root@localhost/ServerAdmin admin@${HOSTNAME}/g" \
@@ -126,7 +139,12 @@ RUN chmod +x /apache.sh \
         -e 's/LoadModule disk_cache_module/#LoadModule disk_cache_module/g' \
         -e 's/LoadModule cgi_module/#LoadModule cgi_module/g' \
         -e 's/LoadModule version_module/#LoadModule version_module/g' \
-        /etc/httpd/conf/httpd.conf
+        -e "s/User apache/User ${ADMIN_USER}/g" \
+        -e "s/Group apache/Group ${ADMIN_USER}/g" \
+        /etc/httpd/conf/httpd.conf \
+    && chown -R ${ADMIN_USER}:${ADMIN_USER} /var/log/httpd \
+    && chown -R ${ADMIN_USER}:${ADMIN_USER} ${DOCROOT} \
+    && chmod 0777 /var/log/httpd
 
 # -----------------------------------------------------------------------------
 # Install and Configure SSL Certificate
@@ -141,11 +159,10 @@ ARG SSL_COMMON_NAME
 
 ADD ./conf/SSL/openssl.sh /openssl.sh
 
-RUN openssl genrsa -out defaultSSL.key 1024 \
-    && chmod +x /openssl.sh \
-    && ./openssl.sh \
+RUN /bin/bash /openssl.sh \
+    && openssl genrsa -out defaultSSL.key 1024 \
     && openssl req -new -key defaultSSL.key -out defaultSSL.csr -config /tmp/openssl.cnf -batch \
-    && openssl x509 -req -days 3650 -in defaultSSL.csr -signkey defaultSSL.key -out defaultSSL.crt \
+    && openssl req -x509 -days 365 -in defaultSSL.csr -key defaultSSL.key -out defaultSSL.crt \
     && cp defaultSSL.crt /etc/pki/tls/certs \
     && cp defaultSSL.key /etc/pki/tls/private \
     && rm -f openssl.cnf defaultSSL.crt defaultSSL.key defaultSSL.csr
@@ -258,8 +275,14 @@ ADD ./code/tao /var/www/html
 #   2. Install Tao 3.1 RC7
 #   3. Starts supervisord
 # -----------------------------------------------------------------------------
-ADD run.sh /run.sh
+ARG MYSQL_HOST
+ARG TAO_MYSQL_USER
+ARG TAO_MYSQL_PASSWORD
+ARG TAO_MYSQL_DB
+ARG TAO_USER
+ARG TAO_PASSWORD
+ARG TAO_FULL_URL
 
-RUN chmod +x /run.sh
+ADD run.sh /run.sh
 
 ENTRYPOINT ["/run.sh"]

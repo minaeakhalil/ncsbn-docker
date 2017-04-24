@@ -25,6 +25,7 @@ RUN rpm --rebuilddb \
         yum-plugin-versionlock-1.1.30-40.el6 \
         libxml2-2.7.6-21.el6_8.1 \
         openssl-1.0.1e-57.el6 \
+        nano \
     && yum versionlock add \
         vim-minimal \
         xz \
@@ -67,6 +68,18 @@ RUN yum -y install ntp \
     openssl \
     && service httpd stop \
     && service ntpd start
+
+# -----------------------------------------------------------------------------
+# Admin User
+# -----------------------------------------------------------------------------
+ARG ADMIN_USER
+ARG GID
+ARG UID
+
+RUN groupadd -g ${GID} ${ADMIN_USER} \
+    && useradd -u ${UID} -g ${GID} -G apache,wheel ${ADMIN_USER} \
+    && echo "%wheel	ALL=(ALL)	NOPASSWD: ALL" > /etc/sudoers.d/wheel \
+    && echo "%${ADMIN_USER}	ALL=(ALL)	NOPASSWD: ALL" > /etc/sudoers.d/${ADMIN_USER}
 
 # -----------------------------------------------------------------------------
 # Apache Configuration
@@ -126,7 +139,12 @@ RUN /bin/bash /apache.sh \
         -e 's/LoadModule disk_cache_module/#LoadModule disk_cache_module/g' \
         -e 's/LoadModule cgi_module/#LoadModule cgi_module/g' \
         -e 's/LoadModule version_module/#LoadModule version_module/g' \
-        /etc/httpd/conf/httpd.conf
+        -e "s/User apache/User ${ADMIN_USER}/g" \
+        -e "s/Group apache/Group ${ADMIN_USER}/g" \
+        /etc/httpd/conf/httpd.conf \
+    && chown -R ${ADMIN_USER}:${ADMIN_USER} /var/log/httpd \
+    && chown -R ${ADMIN_USER}:${ADMIN_USER} ${DOCROOT} \
+    && chmod 0777 /var/log/httpd
 
 # -----------------------------------------------------------------------------
 # Install and Configure SSL Certificate
@@ -242,7 +260,6 @@ ADD ./code/tao /var/www/html
 #   2. Install Tao 3.1 RC7
 #   3. Starts supervisord
 # -----------------------------------------------------------------------------
-ARG DOCROOT
 ARG MYSQL_HOST
 ARG TAO_MYSQL_USER
 ARG TAO_MYSQL_PASSWORD

@@ -143,7 +143,7 @@ RUN /bin/bash /apache.sh \
         -e "s/Group apache/Group ${ADMIN_USER}/g" \
         /etc/httpd/conf/httpd.conf \
     && chown -R ${ADMIN_USER}:${ADMIN_USER} /var/log/httpd \
-    && chown -R ${ADMIN_USER}:${ADMIN_USER} /var/www/html \
+    && chown -R ${ADMIN_USER}:${ADMIN_USER} ${DOCROOT} \
     && chmod 0777 /var/log/httpd
 
 # -----------------------------------------------------------------------------
@@ -260,7 +260,6 @@ ADD ./code/tao /var/www/html
 #   2. Install Tao 3.1 RC7
 #   3. Starts supervisord
 # -----------------------------------------------------------------------------
-ARG DOCROOT
 ARG MYSQL_HOST
 ARG TAO_MYSQL_USER
 ARG TAO_MYSQL_PASSWORD
